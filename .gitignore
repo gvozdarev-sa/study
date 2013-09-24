@@ -1,3 +1,8 @@
+#vim
+.*.swp
+# ctags
+tags
+
 # Compiled Object files
 *.slo
 *.lo

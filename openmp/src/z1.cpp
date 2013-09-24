@@ -1,30 +1,34 @@
-#include <stdio.h>
+#include <iostream>
 #include <omp.h>
 
-#define N 100000
-
-#include "Camera.hpp"
+#include "Image.hpp"
 
 int main(int argc, char *argv[])
 {
-    Camera cam( "1.png");
+    if ( argc != 2)
+    {
+        std::cout << "Please specify image file" << std::endl;
+    }
+    Image cam( argv[ 1]);
 
 
     int w = cam.GetWidth( ),
         h = cam.GetHeight( );
 
-    for ( int i = 0; i < h; i++)
+    #pragma omp paraller for
     {
-        for ( int j = 0; j < w; j++)
+        for ( int i = 0; i < h; i++)
         {
-            Color col = cam.GetPixel( i,j);
-            Color ncol;
+            for ( int j = 0; j < w; j++)
+            {
+                Color col = cam.GetPixel( i,j);
+                Color ncol;
 
-            ncol.r = ncol.g = ncol.b = 0.299f * col.r + 0.587f * col.g + 0.114f * col.b;
-            cam.SetPixel( i, j, ncol);
+                ncol.r = ncol.g = ncol.b = 0.299f * col.r + 0.587f * col.g + 0.114f * col.b;
+                cam.SetPixel( i, j, ncol);
+            }
         }
     }
-
     cam.SaveImage( "2.bmp");
 
 
