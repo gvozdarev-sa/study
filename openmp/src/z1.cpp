@@ -42,9 +42,10 @@ int main(int argc, char *argv[])
 
     Timer timer;
     timer.Start( );
-    #pragma omp paraller for
+    #pragma omp parallel
     {
-        for ( int i = 0; i < h; i++)
+        #pragma omp for schedule(dynamic, 100)
+        for ( int i = 4; i < h; i++)
         {
             for ( int j = 0; j < w; j++)
             {

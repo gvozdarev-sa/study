@@ -1,9 +1,10 @@
 
 
-LIB=-lIL -lmng -lpng -ljpeg -ltiff -Iinclude -Llib
+LIB=-lIL
+#-ljasper -lmng -lpng -ljpeg -ltiff -Iinclude -Llib
 
 
-CFLAGS=-O2 -Iinclude -Llib
+CFLAGS=-O2
 CXXFLAGS=${CFLAGS}
 OPENMP=-fopenmp
 CXX=g++
@@ -48,7 +49,7 @@ clean: dirs
 	rm -rf obj/*
 	cp src/1.jpg bin
 
-dirs: 
+dirs:
 	mkdir -p bin
 	mkdir -p obj
 	mkdir -p lib
@@ -64,5 +65,5 @@ devil: dirs
 	cp -rf usr/local/lib/* lib
 	rm -rf devil-1.7.8
 	rm -rf usr
-	rm -f  lib/*.so
+	rm -f  lib/*.so*
 	rm DevIL-1.7.8.tar.gz
