@@ -1,9 +1,9 @@
 
 
-LIB=-lIL
+LIB=-lIL -lmng -lpng -ljpeg -ltiff -Iinclude -Llib
 
 
-CFLAGS=-O2
+CFLAGS=-O2 -Iinclude -Llib
 CXXFLAGS=${CFLAGS}
 OPENMP=-fopenmp
 CXX=g++
@@ -37,23 +37,24 @@ z1w: bin/z1w
 
 
 run: z1w z1
-	echo 'Run with openmp'
+	echo "Run with openmp\n============="
 	cd bin && ./z1 1.jpg
 	cd bin && rm 2.bmp
-	echo 'Run without openmp'
+	echo "Run without openmp\n============"
 	cd bin && ./z1w 1.jpg
 
 clean: dirs
-	rm -r bin/*
-	rm -r obj/*
+	rm -rf bin/*
+	rm -rf obj/*
 	cp src/1.jpg bin
 
 dirs: 
 	mkdir -p bin
 	mkdir -p obj
+	mkdir -p lib
+	mkdir -p include
 
-
-devil:
+devil: dirs
 	wget http://downloads.sourceforge.net/openil/DevIL-1.7.8.tar.gz
 	tar -xvf DevIL-1.7.8.tar.gz
 	cd  devil-1.7.8 && ./configure
@@ -63,4 +64,5 @@ devil:
 	cp -rf usr/local/lib/* lib
 	rm -rf devil-1.7.8
 	rm -rf usr
+	rm -f  lib/*.so
 	rm DevIL-1.7.8.tar.gz

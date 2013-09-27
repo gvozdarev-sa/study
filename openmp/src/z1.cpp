@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 
     cam.SaveImage( "2.bmp");
 
-    std::cout << "Time" << timer.GetTime( ) << std::endl;
+    std::cout << "Time : " << timer.GetTime( ) << std::endl;
 
     return 0;
 }
