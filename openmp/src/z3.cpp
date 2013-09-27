@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     #pragma omp parallel
     {
         #pragma omp for schedule(guided, 100)
-        for ( int i = 0; i < h; i++)
+        for ( int i = 4; i < h; i++)
         {
             for ( int j = 0; j < w; j++)
             {

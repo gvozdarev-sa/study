@@ -76,9 +76,9 @@ int main(int argc, char *argv[])
     #pragma omp parallel
     {
         #pragma omp for schedule(guided, 100)
-        for ( int i = 0; i < h; i++)
+        for ( int i = R; i < h - R; i++)
         {
-            for ( int j = 0; j < w; j++)
+            for ( int j = R; j < w - R; j++)
             {
                 std::vector<Color>  array( 8);
                 Color col;
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
                 {
                     for ( int jj = 0; jj < R; jj++)
                     {
-                        if ( ii * ii + jj * jj < R *R)
+                        if ( ii * ii + jj * jj < R * R + 0.1)
                         {
                             array.push_back( I1.GetPixel( i + ii,j + jj));
                         }
