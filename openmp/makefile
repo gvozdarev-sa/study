@@ -1,8 +1,7 @@
 
 
-LIB=-lIL
-#-ljasper -lmng -lpng -ljpeg -ltiff -Iinclude -Llib
-
+LIB=-lIL -lmng -lpng -ljpeg -ltiff -Llib
+INCLUDE=-Iinclude
 
 CFLAGS=-O2
 CXXFLAGS=${CFLAGS}
@@ -18,23 +17,23 @@ Z1: clean run
 
 
 obj/image.o: src/Image.cpp src/Image.hpp
-	${CXX} -c ${CXXFLAGS} src/Image.cpp -o obj/image.o
+	${CXX} -c ${CXXFLAGS} src/Image.cpp -o obj/image.o ${INCLUDE}
 
 ### with -fopenmp
 obj/z.o: src/${TASK}.cpp
-	${CXX} -c ${CXXFLAGS} ${OPENMP} src/${TASK}.cpp -o obj/z1.o
+	${CXX} -c ${CXXFLAGS} ${OPENMP} src/${TASK}.cpp -o obj/z1.o ${INCLUDE}
 
 bin/z: obj/z.o obj/image.o
-	${CXX}  ${CXXFLAGS} ${OPENMP} obj/z1.o obj/image.o -o bin/z ${LIB}
+	${CXX}  ${CXXFLAGS} ${OPENMP} obj/z1.o obj/image.o -o bin/z ${LIB} ${INCLUDE}
 
 z: bin/z
 
 ### w/0 -fopenmp
 obj/zw.o: src/${TASK}.cpp
-	${CXX} -c ${CXXFLAGS} src/${TASK}.cpp -o obj/zw.o
+	${CXX} -c ${CXXFLAGS} src/${TASK}.cpp -o obj/zw.o ${INCLUDE}
 
 bin/zw: obj/zw.o obj/image.o
-	${CXX}  ${CXXFLAGS}  obj/zw.o obj/image.o -o bin/zw ${LIB}
+	${CXX}  ${CXXFLAGS}  obj/zw.o obj/image.o -o bin/zw ${LIB} ${INCLUDE}
 
 zw: bin/zw
 ##############
