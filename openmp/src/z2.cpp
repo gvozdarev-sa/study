@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
     }
     timer.Stop( );
 
-    I2.SaveImage( "2.bmp");
+    I2.SaveImage( "2.jpg");
 
     std::cout << "Time : " << timer.GetTime( ) << std::endl;
 

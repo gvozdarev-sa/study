@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     }
     timer.Stop( );
 
-    cam.SaveImage( "2.bmp");
+    cam.SaveImage( "2.jpg");
 
     std::cout << "Time : " << timer.GetTime( ) << std::endl;
 
