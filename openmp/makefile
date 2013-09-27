@@ -3,22 +3,52 @@
 LIB=-lIL
 
 
-CFLAGS=-fopenmp
+CFLAGS=-O2
 CXXFLAGS=${CFLAGS}
+OPENMP=-fopenmp
 CXX=g++
 
-all: dirs z1
+all: Z1
 
-obj/z1.o: src/z1.cpp
-	${CXX} -c ${CXXFLAGS} src/z1.cpp -o obj/z1.o
+Z1: clean run
+
 
 obj/image.o: src/Image.cpp src/Image.hpp
 	${CXX} -c ${CXXFLAGS} src/Image.cpp -o obj/image.o
 
-z1: obj/z1.o obj/image.o
-	${CXX}  ${CXXFLAGS} obj/z1.o obj/image.o -o bin/z1 ${LIB}
+### with -fopenmp
+obj/z1.o: src/z1.cpp
+	${CXX} -c ${CXXFLAGS} ${OPENMP} src/z1.cpp -o obj/z1.o
 
-dirs:
+bin/z1: obj/z1.o obj/image.o
+	${CXX}  ${CXXFLAGS} ${OPENMP} obj/z1.o obj/image.o -o bin/z1 ${LIB}
+
+z1: bin/z1
+
+### w/0 -fopenmp
+obj/z1w.o: src/z1.cpp
+	${CXX} -c ${CXXFLAGS} src/z1.cpp -o obj/z1w.o
+
+bin/z1w: obj/z1w.o obj/image.o
+	${CXX}  ${CXXFLAGS}  obj/z1w.o obj/image.o -o bin/z1w ${LIB}
+
+z1w: bin/z1w
+##############
+
+
+run: z1w z1
+	echo 'Run with openmp'
+	cd bin && ./z1 1.jpg
+	cd bin && rm 2.bmp
+	echo 'Run without openmp'
+	cd bin && ./z1w 1.jpg
+
+clean: dirs
+	rm -r bin/*
+	rm -r obj/*
+	cp src/1.jpg bin
+
+dirs: 
 	mkdir -p bin
 	mkdir -p obj
 

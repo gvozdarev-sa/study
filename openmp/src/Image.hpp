@@ -1,3 +1,10 @@
+/*
+Простой класс для загрузки изображений,
+манипуляций с пикселями и сохранения результата.
+
+Для работы этого класса нужна библиотека DevIL
+*/
+
 #ifndef _IMAGE_HPP_
 #define _IMAGE_HPP_
 
@@ -14,6 +21,22 @@ typedef struct _Color
 
 class Image
 {
+public:
+    Image ( std::string);
+    ~Image();  
+
+    //////////////////////
+    // i - строка
+    // j - столбец
+    void   SetPixel    ( int i, int j, const Color &color);
+    Color  GetPixel    ( int i, int j) const;
+
+    int    GetWidth  ( ) const;
+    int    GetHeight ( ) const;
+
+
+    void   SaveImage ( std::string file_name) const;
+
 private:
     ILuint         *_image_id;
     float          *_bitmap;
@@ -23,22 +46,6 @@ private:
 
     void   LoadImage ( std::string file_name);
     void   RotateImage ( );
-public:
-
-    //////////////////////
-    // i - строка
-    // j - столбец
-    void   SetPixel    ( int i, int j, Color &color);
-    Color  GetPixel    ( int i, int j);
-
-    int    GetWidth  ( );
-    int    GetHeight ( );
-
-
-    void   SaveImage ( std::string file_name);
-    //////////////////////
-    Image ( std::string);
-    ~Image();
 };
 
 #endif  //_IMAGE_HPP_

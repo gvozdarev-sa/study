@@ -2,11 +2,7 @@
 
 #include <iostream>
 
-//////////////////////
-
-
-
-void Image::SaveImage ( std::string file_name )
+void Image::SaveImage ( std::string file_name ) const
 {
     ilBindImage( _image_id[ 1]);
 
@@ -23,28 +19,22 @@ void Image::SaveImage ( std::string file_name )
     std::cout << file_name.c_str( ) << std::endl;
     ilSaveImage(  file_name.c_str());
 
-    std::cout << std::endl << ilGetError();
+    //std::cout << std::endl << ilGetError();
 }
-void Image::SetPixel ( int i, int j, Color &color )
+
+void Image::SetPixel ( int i, int j, const Color &color )
 {
     if ( i >= _height_px || j >= _width_px)
         return;
 
     {
-        //boost::mutex::scoped_lock  lock ( _monitor_set );
-
         _bitmap[ i * _width_px * 3 + j*3 + 0] = color.r;
         _bitmap[ i * _width_px * 3 + j*3 + 1] = color.g;
         _bitmap[ i * _width_px * 3 + j*3 + 2] = color.b;
     }
-
-
-    //std::cout << color.r;
-    //std::cout << color.g;
-    //std::cout << color.b;
 }
 
-Color Image::GetPixel( int i, int j)
+Color Image::GetPixel( int i, int j) const
 {
     Color col;
 
@@ -52,19 +42,15 @@ Color Image::GetPixel( int i, int j)
     col.g = _bitmap[ i * _width_px * 3 + j*3 + 1];
     col.b = _bitmap[ i * _width_px * 3 + j*3 + 2];
 
-    //std::cout << col.r;
-    //std::cout << col.g;
-    //std::cout << col.b;
-
     return col;
 }
 
-int Image::GetWidth( )
+int Image::GetWidth( ) const
 {
     return _width_px;
 }
 
-int Image::GetHeight( )
+int Image::GetHeight( ) const
 {
     return _height_px;
 }
