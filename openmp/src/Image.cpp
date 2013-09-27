@@ -16,6 +16,7 @@ void Image::SaveImage ( std::string file_name ) const
 
     ilTexImage( Width, Heigh, Depth, Bpp, Format, Type, _bitmap);
 
+    ilEnable(IL_FILE_OVERWRITE);
     std::cout << file_name.c_str( ) << std::endl;
     ilSaveImage(  file_name.c_str());
 
@@ -37,6 +38,24 @@ void Image::SetPixel ( int i, int j, const Color &color )
 Color Image::GetPixel( int i, int j) const
 {
     Color col;
+
+    if ( i > _height_px)
+    {
+        i = _height_px;
+    }
+    if ( i < 0)
+    {
+        i = 0;
+    }
+    if ( j > _width_px)
+    {
+        j = _width_px;
+    }
+    if ( j < 0)
+    {
+        j = 0;
+    }
+
 
     col.r = _bitmap[ i * _width_px * 3 + j*3 + 0];
     col.g = _bitmap[ i * _width_px * 3 + j*3 + 1];

@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     timer.Start( );
     #pragma omp parallel
     {
-        #pragma omp for schedule(dynamic, 100)
+        #pragma omp for schedule(guided, 100)
         for ( int i = 4; i < h; i++)
         {
             for ( int j = 0; j < w; j++)
