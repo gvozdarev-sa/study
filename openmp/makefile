@@ -9,6 +9,9 @@ CXXFLAGS=${CFLAGS}
 OPENMP=-fopenmp
 CXX=g++
 
+#########################
+TASK=z2
+#########################
 all: Z1
 
 Z1: clean run
@@ -18,31 +21,29 @@ obj/image.o: src/Image.cpp src/Image.hpp
 	${CXX} -c ${CXXFLAGS} src/Image.cpp -o obj/image.o
 
 ### with -fopenmp
-obj/z1.o: src/z1.cpp
-	${CXX} -c ${CXXFLAGS} ${OPENMP} src/z1.cpp -o obj/z1.o
+obj/z.o: src/${TASK}.cpp
+	${CXX} -c ${CXXFLAGS} ${OPENMP} src/${TASK}.cpp -o obj/z1.o
 
-bin/z1: obj/z1.o obj/image.o
-	${CXX}  ${CXXFLAGS} ${OPENMP} obj/z1.o obj/image.o -o bin/z1 ${LIB}
+bin/z: obj/z.o obj/image.o
+	${CXX}  ${CXXFLAGS} ${OPENMP} obj/z1.o obj/image.o -o bin/z ${LIB}
 
-z1: bin/z1
+z: bin/z
 
 ### w/0 -fopenmp
-obj/z1w.o: src/z1.cpp
-	${CXX} -c ${CXXFLAGS} src/z1.cpp -o obj/z1w.o
+obj/zw.o: src/${TASK}.cpp
+	${CXX} -c ${CXXFLAGS} src/${TASK}.cpp -o obj/zw.o
 
-bin/z1w: obj/z1w.o obj/image.o
-	${CXX}  ${CXXFLAGS}  obj/z1w.o obj/image.o -o bin/z1w ${LIB}
+bin/zw: obj/zw.o obj/image.o
+	${CXX}  ${CXXFLAGS}  obj/zw.o obj/image.o -o bin/zw ${LIB}
 
-z1w: bin/z1w
+zw: bin/zw
 ##############
 
 
-run: z1w z1
-	echo "Run with openmp\n============="
-	cd bin && ./z1 1.jpg
+run: zw z
+	cd bin && ./z 1.jpg
 	cd bin && rm 2.bmp
-	echo "Run without openmp\n============"
-	cd bin && ./z1w 1.jpg
+	cd bin && ./zw 1.jpg
 
 clean: dirs
 	rm -rf bin/*
