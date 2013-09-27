@@ -42,7 +42,7 @@ zw: bin/zw
 
 run: zw z
 	cd bin && ./z 1.jpg
-	cd bin && rm 2.bmp
+	cd bin && rm 2.jpg
 	cd bin && ./zw 1.jpg
 
 clean: dirs
