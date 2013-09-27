@@ -21,3 +21,16 @@ z1: obj/z1.o obj/image.o
 dirs:
 	mkdir -p bin
 	mkdir -p obj
+
+
+devil:
+	wget http://downloads.sourceforge.net/openil/DevIL-1.7.8.tar.gz
+	tar -xvf DevIL-1.7.8.tar.gz
+	cd  devil-1.7.8 && ./configure
+	cd  devil-1.7.8 && make
+	cd  devil-1.7.8 && make install DESTDIR=`pwd`/..
+	cp -rf usr/local/include/* include
+	cp -rf usr/local/lib/* lib
+	rm -rf devil-1.7.8
+	rm -rf usr
+	rm DevIL-1.7.8.tar.gz
