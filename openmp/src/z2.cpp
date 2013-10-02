@@ -10,17 +10,17 @@
 // Медианный фильтр
 
 
-int compare_red( Color  a, Color   b)
+bool compare_red( const Color & a, const Color &  b)
 {
     return a.r < b.r;
 }
 
-int compare_green( Color  a, Color   b)
+bool compare_green( const Color&  a, const Color &  b)
 {
     return a.g < b.g;
 }
 
-int compare_blue( Color  a, Color   b)
+bool compare_blue( const Color &  a, const Color &  b)
 {
     return a.b < b.b;
 }
@@ -55,18 +55,19 @@ int main(int argc, char *argv[])
     #pragma omp parallel
     {
         #pragma omp for schedule(guided, 100)
-        for ( int i = R; i < h - R; i++)
+        for ( int i = 0; i < h; i++)
         {
-            for ( int j = R; j < w - R; j++)
+            for ( int j = 0; j < w; j++)
             {
-                std::vector<Color>  array( 8);
+                std::vector<Color>  array;
+                array.reserve( R * R);
                 Color col;
 
-                for ( int ii = 0; ii < R; ii++)
+                for ( int ii = -R; ii < R; ii++)
                 {
-                    for ( int jj = 0; jj < R; jj++)
+                    for ( int jj = -R; jj < R; jj++)
                     {
-                        if ( ii * ii + jj * jj < R * R + 0.1)
+                        if ( ii * ii + jj * jj <= R * R)
                         {
                             array.push_back( I1.GetPixel( i + ii,j + jj));
                         }
