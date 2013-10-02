@@ -1,3 +1,10 @@
+openmp/include/*
+openmp/bin/*
+openmp/lib/*
+openmp/obj/*
+
+.directory
+
 #vim
 .*.swp
 # ctags

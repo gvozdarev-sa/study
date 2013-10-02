@@ -1,30 +1,8 @@
 #include <iostream>
-#include <sys/time.h>
 #include <omp.h>
 
 #include "Image.hpp"
-
-
-class Timer
-{
-public:
-    void Start( )
-    {
-        gettimeofday( &_start_time, NULL);
-    }
-    void Stop( )
-    {
-        gettimeofday( &_end_time, NULL);
-    }
-    double GetTime( )
-    {
-        return _end_time.tv_sec - _start_time.tv_sec + 0.000001 * ( _end_time.tv_usec - _start_time.tv_usec);
-    }
-private:
-    struct timeval _start_time,
-                   _end_time;
-
-};
+#include "Timer.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -61,7 +39,7 @@ int main(int argc, char *argv[])
 
     cam.SaveImage( "2.jpg");
 
-    std::cout << "Time : " << timer.GetTime( ) << std::endl;
+    std::cout << "Time : " << timer.GetTotalTime( ) << std::endl;
 
     return 0;
 }
