@@ -4,7 +4,7 @@ LIB=-lIL
 #-ljasper -lmng -lpng -ljpeg -ltiff -Iinclude -Llib
 
 
-CFLAGS=-O2
+CFLAGS=-O2 -march=native
 CXXFLAGS=${CFLAGS}
 OPENMP=-fopenmp
 CXX=g++
@@ -14,7 +14,7 @@ TASK=z2
 #########################
 all: Z1
 
-Z1: clean run
+Z1:  run
 
 
 obj/image.o: src/Image.cpp src/Image.hpp
@@ -40,10 +40,8 @@ zw: bin/zw
 ##############
 
 
-run: zw z
+run:  z
 	cd bin && ./z 1.jpg
-	cd bin && rm 2.jpg
-	cd bin && ./zw 1.jpg
 
 clean: dirs
 	rm -rf bin/*

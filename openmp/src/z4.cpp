@@ -1,7 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <cmath>
-//#include <omp.h>
+#include <omp.h>
 
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
@@ -26,8 +26,9 @@ namespace ublas = boost::numeric::ublas;
 typedef double  real_t;
 
 
-typedef ublas::compressed_matrix< real_t> Matrix;
-//typedef ublas::matrix< real_t> Matrix;
+//typedef ublas::compressed_matrix< real_t> Matrix;
+typedef ublas::matrix< real_t> Matrix;
+
 typedef ublas::vector< real_t> Vector;
 
 
@@ -39,16 +40,17 @@ real_t f( real_t x, Vector & y);
 const real_t FROM = -10.0;
 const real_t TO   =  10.0;
 
-//const real_t h = 0.001;
-//const int N = (int)( 1.0 / h);
 
-//const int N = 7;
 //const int N = 15;
-const int N = 31;
+//const int N = 31;
+//const int N = 63;
+//const int N = 127;
+//const int N = 255;
+//const int N = 511;
+//const int N = 2047;
+const int N = 4095;
+//const int N = 8191;
 
-
-//const int N = 1024;
-//const int N = 2048;
 
 const real_t h = ( TO - FROM) / N;
 
@@ -59,9 +61,8 @@ Image I( "res.bmp");
 
 void SetA( Matrix & A)
 {
-    A( 0,0) = 0.0;
     A( 0,1) = 1.0;
-    for( int i = 1; i < N - 1; i++)
+    for( int i = 1; i < N-1; i++)
     {
         A( i, i + 1) = -2.0;
         A( i, i + 2) =  1.0;
@@ -69,7 +70,6 @@ void SetA( Matrix & A)
     }
 
     A( N-1, N)     = 1.0;
-//    A( N-1, N)     = 0.0;
 }
 
 inline real_t f( real_t x){    return 100 * ( x - x * x * x);}
@@ -82,33 +82,33 @@ real_t F( int x, const Vector & y)
     real_t f_p_1 = f( y( x + 1));
     real_t f_m_1 = f( y( x - 1));
 
-    std::cout << f_ << " " << f_p_1 << " " << f_m_1 << " " << c_1_12 << " " << f_m_1 + f_p_1 - 2 * f_ << " " << h * h <<std::endl;
+    real_t res = h * h * ( f_ + c_1_12 * ( f_m_1 - 2 * f_ + f_p_1 ));
+//    std::cout << f_ << " " << f_p_1 << " " << f_m_1 << " " << c_1_12 << " " << f_m_1 + f_p_1 - 2 * f_ << " " << h * h << " " << res <<std::endl;
 
-    return h * h * ( f_ + c_1_12 * ( f_m_1 + f_p_1 - 2 * f_ ));
+    return res;
 }
 
 
-void SetFirstY( Vector & y)
+void SetXApprox( Vector & y)
 {
-    y( 0)   = a;
-    for( int i = 1; i < N - 1; i++)
+    y( 1)   = a;
+    for( int i = 2; i < N; i++)
     {
-        y( i) = a + ( b - a) * ( real_t)i / N;
-//        std::cout << y( i) << "\t";
+        y( i) = a + ( b - a) * ( real_t)( i - 1) / N;
     }
-    y( N-1) = b;
+    y( N) = b;
 }
 
 void SetY( Vector & y)
 {
     Vector y_c( y);
 
-//    y( 0)   = h * h * f( a);
-    for( int i = 1; i < N - 1; i++)
+    y( 1)   =  a;
+    for( int i = 2; i < N; i++)
     {
         y( i) = F( i, y_c);
     }
-//    y( N-1) = h * h *f( b);
+    y( N) =  b;
 }
 
 
@@ -175,7 +175,7 @@ bool IsSim( const Vector & a, const Vector & b)
     real_t eps = 0.001;
     for ( int i = 0; i < N; i++)
     {
-        std::cout << a( i) << "\t" << b( i) << "diff \t" << fabs( a( i) - b( i)) << std::endl;
+//        std::cout << a( i) << "\t" << b( i) << "diff \t" << fabs( a( i) - b( i)) << std::endl;
 
         if ( fabs( a( i) - b( i)) > eps)
         {
@@ -188,67 +188,61 @@ bool IsSim( const Vector & a, const Vector & b)
 int main ( int argc, char * argv[ ])
 {
     Matrix A( N, N + 2);
-    Vector x( N + 2), x_prev( N),y( N), f( N);
+    Vector x     ( N + 2),
+           x_prev( N + 2),
+           y     ( N + 2),
+           f     ( N + 2);
 
     SetA( A);
-    SetFirstY( f);
-    SetY( f);
 
-    Solve_reduction( A, f, x);
+    // первое приблежение
+    SetXApprox( x);
+    y = x;
+    SetY( y);
 
-    A.resize( N,N, false);
-    A( 0,0) = 1.0;
-    for( int i = 1; i < N - 1; i++)
-    {
-        A( i, i + 0) = -2.0;
-        A( i, i - 1) =  1.0;
-        A( i, i + 1) =  1.0;
-    }
-    A( N-1,N-1) = 1.0;
+//    std::cout << "!!! 0\t!!!" << x << "\n";
+//    std::cout << "!!! 0\t!!!" << y << "\n";
+//    std::cout << "!!! 0\t!!!" << A << "\n";
 
-//    std::cout << A << "\t" << f << "\n";
+    //CreateImg( y, "dat0");
 
-    Solve_1_thread( A, f, x);
-    std::cout << "\n============1thread============\n" << x << "\n";
+    x_prev = x;
+    Solve_reduction( A, y, x);
+    std::cout << "!!! 1\t!!!" << x << "\n";
 
-    return 0;
-
-
-
-
-    SetA( A);
-    std::cout << A << "\n";
-
-
-    SetFirstY( y);
-    std::cout << y << "\n";
-    CreateImg( y, "dat0");
+/*
+    SetXApprox( x);
+    y = x;
     SetY( y);
 
     Solve_1_thread( A, y, x);
-    std::cout << x << "\n";
+    std::cout << "!!! 1\t!!!" << x << "\n";
 
-    CreateImg( x, "dat1");
+*/
+    //CreateImg( x, "dat1");
 
     int i = 2;
-    while( ! IsSim( x, x_prev))
+    while( i < 3 && ! IsSim( x, x_prev))
     {
         x_prev = y = x;
 
         SetY( y);
 
-        Solve_1_thread( A, y, x);
-        std::cout << x << "\n";
+        Solve_reduction( A, y, x);
+//        std::cout << x << "\n";
 
         std::stringstream ss;
         ss << "dat" << i;
 
-        std::cout << "name " << ss.str( ) << " ";
-        CreateImg( x, ss.str( ));
-
+      //  CreateImg( x, ss.str( ));
 
         i++;
-        std::cout << "Iter: " << i << std::endl;
+//        std::cout << "!!! " << i << "\t!!!" << std::endl;
+    }
+
+    for ( int i = 1; i < x.size() - 1; i++)
+    {
+        std::cout << FROM + (real_t)i /N*( TO - FROM)  << "\t" << x( i) << "\n";
     }
 }
 
@@ -279,11 +273,23 @@ bool InvertMatrix( const Matrix & input_m, Matrix & inverse_m)
 
 void Solve_1_thread( const Matrix & A, const Vector & b, Vector & x)
 {
-    Matrix A_inv( A.size1( ), A.size2( ));
+    ublas::slice col( 1, 1, A.size2( )-2);
+    ublas::slice row( 0, 1, A.size1( ));
 
-    InvertMatrix( A, A_inv);
+    Matrix __A( A);
+    Vector __b( b);
+    ublas::matrix_slice< Matrix> _A( __A, row,col);
+    ublas::vector_slice< Vector> _f( __b, col);
 
-    x = ublas::prod( A_inv, b);
+//    std::cout << _A.size1( ) << " " << _A.size2( ) << "!!!\n";
+//    std::cout << _A << _f << std::endl;
+
+    Matrix A_inv( _A.size1( ), _A.size2( ));
+
+
+    InvertMatrix( _A, A_inv);
+
+    x = ublas::prod( A_inv, _f);
 }
 
 void ReductBlockBackward( Matrix & A, Vector & f, int i, Matrix & new_A, Vector & new_f)
@@ -291,10 +297,7 @@ void ReductBlockBackward( Matrix & A, Vector & f, int i, Matrix & new_A, Vector 
     ublas::slice col( i, 1, 5);
     ublas::slice row( i, 1, 3);
     ublas::matrix_slice< Matrix> _A( A, row,col);
-
     ublas::vector_slice< Vector> _f( f, row);
-
-//    std::cout << i << " " << _A << "\t" << _f <<  std::endl;
 
     new_A.resize( 3, 5, false);
 
@@ -313,11 +316,6 @@ void ReductBlockBackward( Matrix & A, Vector & f, int i, Matrix & new_A, Vector 
     new_A( 2,3) = ( _A( 2,3) * _A( 1,3)) - ( _A( 1,3) * _A( 2,3));
     new_A( 2,4) = ( _A( 2,4) * _A( 1,3)) - ( _A( 1,4) * _A( 2,3));
     new_f( 2)   = ( _f( 2)   * _A( 1,3)) - ( _f( 1)   * _A( 2,3));
-using std::cout;
-
-    cout << "block_old " << _A << std::endl;
-    cout << "block_new " << new_A << std::endl;
-//    std::cout << i << new_A << "\t" << new_f <<  std::endl;
 }
 
 /*
@@ -338,32 +336,33 @@ void ReductBlock( Matrix & A, Vector & f, int i, Matrix & new_A, Vector & new_f)
     ublas::slice row( i, 1, 3);
     ublas::matrix_slice< Matrix> _A( A, row,col);
 
-    ublas::vector_slice< Vector> _f( f, row);
+    ublas::slice vec( i + 1, 1,3);
+    ublas::vector_slice< Vector> _f( f, vec);
 
-//    std::cout << i << " " << _A << "\t" << _f <<  std::endl;
+    //std::cout << i << " " << _A << "\t" << _f <<  std::endl;
 
     new_A.resize( 3, 5, false);
 
     // second row minus first
-    new_A( 1,0) = ( _A( 1,0) * _A( 0,1)) - ( _A( 0,0) * _A( 1,1));
-    new_A( 1,1) = ( _A( 1,1) * _A( 0,1)) - ( _A( 0,1) * _A( 1,1));
-    new_A( 1,2) = ( _A( 1,2) * _A( 0,1)) - ( _A( 0,2) * _A( 1,1));
-    new_A( 1,3) = ( _A( 1,3) * _A( 0,1)) - ( _A( 0,3) * _A( 1,1));
-    new_A( 1,4) = ( _A( 1,4) * _A( 0,1)) - ( _A( 0,4) * _A( 1,1));
-    new_f( 1)   = ( _f( 1)   * _A( 0,1)) - ( _f( 0)   * _A( 1,1));
+    new_A( 1,0) = ( ( _A( 1,0) * _A( 0,1)) - ( _A( 0,0) * _A( 1,1))) /_A( 1,1) ;
+    new_A( 1,1) = ( ( _A( 1,1) * _A( 0,1)) - ( _A( 0,1) * _A( 1,1))) /_A( 1,1) ;
+    new_A( 1,2) = ( ( _A( 1,2) * _A( 0,1)) - ( _A( 0,2) * _A( 1,1))) /_A( 1,1) ;
+    new_A( 1,3) = ( ( _A( 1,3) * _A( 0,1)) - ( _A( 0,3) * _A( 1,1))) /_A( 1,1) ;
+    new_A( 1,4) = ( ( _A( 1,4) * _A( 0,1)) - ( _A( 0,4) * _A( 1,1))) /_A( 1,1) ;
+    new_f( 1)   = ( ( _f( 1)   * _A( 0,1)) - ( _f( 0)   * _A( 1,1))) /_A( 1,1) ;
 
     //std::cout << i << "sec - fir" << new_A << "\t" << new_f <<  std::endl;
     Matrix __A( new_A);
     Vector __f( new_f);
     // second row minus third
-    new_A( 1,0) = ( __A( 1,0) * _A( 2,3)) - ( _A( 2,0) * __A( 1,3));
-    new_A( 1,1) = ( __A( 1,1) * _A( 2,3)) - ( _A( 2,1) * __A( 1,3));
-    new_A( 1,2) = ( __A( 1,2) * _A( 2,3)) - ( _A( 2,2) * __A( 1,3));
-    new_A( 1,3) = ( __A( 1,3) * _A( 2,3)) - ( _A( 2,3) * __A( 1,3));
-    new_A( 1,4) = ( __A( 1,4) * _A( 2,3)) - ( _A( 2,4) * __A( 1,3));
-    new_f( 1)   = ( __f( 1)   * _A( 2,3)) - ( _f( 2)   * __A( 1,3));
+    new_A( 1,0) = (( __A( 1,0) * _A( 2,3)) - ( _A( 2,0) * __A( 1,3))) / __A( 1,3);
+    new_A( 1,1) = (( __A( 1,1) * _A( 2,3)) - ( _A( 2,1) * __A( 1,3))) / __A( 1,3);
+    new_A( 1,2) = (( __A( 1,2) * _A( 2,3)) - ( _A( 2,2) * __A( 1,3))) / __A( 1,3);
+    new_A( 1,3) = (( __A( 1,3) * _A( 2,3)) - ( _A( 2,3) * __A( 1,3))) / __A( 1,3);
+    new_A( 1,4) = (( __A( 1,4) * _A( 2,3)) - ( _A( 2,4) * __A( 1,3))) / __A( 1,3);
+    new_f( 1)   = (( __f( 1)   * _A( 2,3)) - ( _f( 2)   * __A( 1,3))) / __A( 1,3);
 
-//    std::cout << i << new_A << "\t" << new_f <<  std::endl;
+    //std::cout << i << new_A << "\t" << new_f <<  std::endl;
 }
 
 void Solve_reduction( const Matrix & A, const Vector & f, Vector & x)
@@ -387,129 +386,121 @@ void Solve_reduction( const Matrix & A, const Vector & f, Vector & x)
     Ai.push_back( A);
     fi.push_back( f);
 
+//    cout << A << "\n\n" << f << "\n\n";
 
-    while( T)
-    {
-        int curr_size = curr_m.size1( );
-        int next_size = ( curr_size + 1) / 2 - 1;
-
-        std::cout << "NEXT SIZE: " << next_size << "CURR SIZE: " << curr_size << std::endl;
-
-        std::cout << "Curr :\n" <<curr_m << "\t" << curr_f <<  std::endl;
-
-        next_m.resize( next_size, next_size + 2, false);
-        next_f.resize( next_size, false);
-
-        for( int i = 0; i < curr_size - 2; i+=2)
+        while( T)
         {
-//            std::cout << i << std::endl;
-            Matrix block_m( 3,5, true);
-            Vector block_f( 3, true);
+            int curr_size = curr_m.size1( );
+            int next_size = ( curr_size + 1) / 2 - 1;
 
-            ReductBlock( curr_m, curr_f, i, block_m, block_f);
-            cout << "BLOCK_M" << block_m << "BLOCK_F" << block_f << std::endl;
+            next_m.resize( next_size, next_size + 2, false);
+            next_f.resize( next_size + 2, false);
 
-            next_m( i / 2, i / 2+ 0) = block_m( 1,0);
-            next_m( i / 2, i / 2+ 1) = block_m( 1,2);
-            next_m( i / 2, i / 2+ 2) = block_m( 1,4);
+//            #pragma omp parallel for shared(A,f,x,Ai,fi,curr_m,curr_f,next_m,next_f)
+            for( int i = 0; i < curr_size - 2; i+=2)
+            {
+                Matrix block_m( 3,5, true);
+                Vector block_f( 3, true);
 
-            next_f( i / 2) = block_f( 1);
+                //            cout << "===========================================\n";
+                //cout << "curr_M" << curr_m << "BLOCK_F" << curr_f << std::endl;
+                ReductBlock( curr_m, curr_f, i, block_m, block_f);
+                //cout << "BLOCK_M" << block_m << "BLOCK_F" << block_f << std::endl;
+                //            cout << "===========================================\n";
+
+                next_m( i / 2, i / 2+ 0) = block_m( 1,0);
+                next_m( i / 2, i / 2+ 1) = block_m( 1,2);
+                next_m( i / 2, i / 2+ 2) = block_m( 1,4);
+
+                next_f( i / 2 + 1) = block_f( 1);
+            }
+            if ( next_size == 3)
+            {
+                T = false;
+            }
+            else
+            {
+                curr_f = next_f;
+                curr_m = next_m;
+
+                Ai.push_back( next_m);
+                fi.push_back( next_f);
+
+                stride*=2;
+            }
+            std::cout << "Next :\n" << next_m << " " << next_f << std::endl;
         }
-        if ( next_size == 3)
-        {
-            T = false;
-        }
-        else
-        {
-            curr_f = next_f;
-            curr_m = next_m;
-
-            Ai.push_back( next_m);
-            fi.push_back( next_f);
-
-            stride*=2;
-        }
-       std::cout << "Next :\n" << next_m << " " << next_f << std::endl;
-    }
-
     Matrix block_m( 3,5, true);
     Vector block_f( 3, true);
 
+//    cout << "???" << next_m << " " << next_f << "\n";
     ReductBlock( next_m, next_f, 0, block_m, block_f);
-
-    cout << "!!!NB" << next_m << std::endl << block_m << std::endl;
-//    cout << "y( N - 1)/2 = " <<  block_f( 1) / block_m( 1,2) << std::endl;
+//    cout << "???" << block_m << " " << block_f << "\n";
 
     int j = ( N + 1)/2;
     x( j + 0) = block_f( 1) / block_m( 1,2);
 
-    x( 1*( N +1) /4) = ( next_f( 2) - x( j + 0) * next_m( 2,2)) / next_m( 2,3);
-    x( 3*( N +1) /4) = ( next_f( 0) - x( j + 0) * next_m( 0,2)) / next_m( 0,1);
+    x( 1*( N +1) /4) = ( next_f( 3) - x( j + 0) * next_m( 2,2)) / next_m( 2,3);
+    x( 3*( N +1) /4) = ( next_f( 1) - x( j + 0) * next_m( 0,2)) / next_m( 0,1);
     x( 1) = a;
     x( N) = b;
 
+//    cout << "BEFORE BACKWARD " << stride << " "  << x << "\n";
 
-    cout << "==================================\n";
-    cout << x << std::endl;
-    cout << "stride " << stride << std::endl;
-    cout << "========================= BACKWARD1\n";
-    {
+
+   {
         Matrix & curr_m = Ai.back( );
         Vector & curr_f = fi.back( );
 
         j /= stride;
 
-        x( stride * ( j + 1)) = ( curr_f( 4) - x( stride * ( j + 0)) * curr_m( 4,4) - x( stride * ( j + 2)) * curr_m( 4,6)) / curr_m( 4,5);
-        x( stride * ( j - 1)) = ( curr_f( 2) - x( stride * ( j + 0)) * curr_m( 2,4) - x( stride * ( j - 2)) * curr_m( 2,2)) / curr_m( 2,3);
+        x( stride * ( j + 1)) = ( curr_f( 5) - x( stride * ( j + 0)) * curr_m( 4,4) - x( stride * ( j + 2)) * curr_m( 4,6)) / curr_m( 4,5);
+        x( stride * ( j - 1)) = ( curr_f( 3) - x( stride * ( j + 0)) * curr_m( 2,4) - x( stride * ( j - 2)) * curr_m( 2,2)) / curr_m( 2,3);
 
-        x( stride * ( j + 3)) = ( curr_f( 5) - x( stride * ( j + 2)) * curr_m( 5,6) - x( stride * ( j + 1)) * curr_m( 5,5)) / curr_m( 5,7);
-        x( stride * ( j - 3)) = ( curr_f( 1) - x( stride * ( j - 2)) * curr_m( 1,2) - x( stride * ( j - 1)) * curr_m( 1,1)) / curr_m( 1,1);
+        x( stride * ( j + 3)) = ( curr_f( 6) - x( stride * ( j + 2)) * curr_m( 5,6) - x( stride * ( j + 1)) * curr_m( 5,5)) / curr_m( 5,7);
+        x( stride * ( j - 3)) = ( curr_f( 2) - x( stride * ( j - 2)) * curr_m( 1,2) - x( stride * ( j - 1)) * curr_m( 1,1)) / curr_m( 1,1);
 
         Ai.pop_back( );
         fi.pop_back( );
         stride /= 2;
     }
-    cout << "==================================\n";
-    cout << x << std::endl;
-    cout << "stride " << stride << std::endl;
-    cout << "========================= BACKWARD1\n";
-
     T = true;
 
-    while ( T)
-    {
-        Matrix & curr_m = Ai.back( );
-        Vector & curr_f = fi.back( );
+//    cout << "BEFORE BACKWARD " << x << "\n";
 
-        int curr_size = curr_f.size( );
-
-        cout << "curr_m " << curr_m <<  "\ncurr_size " << curr_size  <<std::endl;
-        for ( int i = 0; i <  curr_size - 2; i+=2)
+        while ( T)
         {
-            cout << "i " << i;
-            ublas::slice col( i, 1, 5);
-            ublas::slice row( i, 1, 3);
-            ublas::matrix_slice< Matrix> _A( curr_m, row,col);
-            ublas::vector_slice< Vector> _f( curr_f, row);
+            Matrix & curr_m = Ai.back( );
+            Vector & curr_f = fi.back( );
 
-            cout << "_A " << " "  <<_A << "\n";
-            x( (i + 1) * stride) = ( _f( 0) - x( ( i + 0) * stride ) *  _A( 0,0) - x( ( i + 2) * stride) * _A( 0,2)) / _A( 0,1);
-        }
+            int curr_size = curr_f.size( );
 
-        if ( stride == 1)
-        {
-            T = false;
+            //cout << "curr_m " << curr_m <<  "\ncurr_size " << curr_size  <<std::endl;
+
+//            #pragma omp parallel for shared(A,f,x,Ai,fi,curr_m,curr_f)
+            for ( int i = 0; i <  curr_size - 2; i+=2)
+            {
+                //cout << "i " << i;
+                ublas::slice col( i, 1, 5);
+                ublas::slice row( i, 1, 3);
+                ublas::matrix_slice< Matrix> _A( curr_m, row,col);
+                ublas::vector_slice< Vector> _f( curr_f, row);
+
+                ///cout << "_A " << " "  <<_A << "\n";
+                x( (i + 1) * stride) = ( _f( 1) - x( ( i + 0) * stride ) *  _A( 0,0) - x( ( i + 2) * stride) * _A( 0,2)) / _A( 0,1);
+            }
+
+            if ( stride == 1)
+            {
+                T = false;
+            }
+            else
+            {
+                Ai.pop_back( );
+                fi.pop_back( );
+                stride /= 2;
+            }
         }
-        else
-        {
-            Ai.pop_back( );
-            fi.pop_back( );
-            stride /= 2;
-        }
-    }
-    cout << "==================================\n";
-    cout << x << std::endl;
-    cout << "========================= BACWARD2\n";
 }
 
 
